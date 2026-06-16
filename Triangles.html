@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Neon Triangle Waves</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #020209;
+    touch-action: none;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+onresize = resize;
+
+// triangle waves
+let waves = [];
+let isTouching = false;
+let tx = 0, ty = 0;
+
+// Create a triangle wave
+function addTriangle(x, y) {
+  waves.push({
+    x, y,
+    r: 10,
+    alpha: 1,
+    hue: Math.random() * 360
+  });
+}
+
+// Touch events
+document.addEventListener("touchstart", e => {
+  let t = e.touches[0];
+  tx = t.clientX;
+  ty = t.clientY;
+  isTouching = true;
+  addTriangle(tx, ty);
+});
+document.addEventListener("touchmove", e => {
+  let t = e.touches[0];
+  tx = t.clientX;
+  ty = t.clientY;
+  isTouching = true;
+});
+document.addEventListener("touchend", () => isTouching = false);
+
+// Mouse events
+document.addEventListener("mousedown", e => {
+  tx = e.clientX;
+  ty = e.clientY;
+  isTouching = true;
+  addTriangle(tx, ty);
+});
+document.addEventListener("mousemove", e => {
+  if (isTouching) {
+    tx = e.clientX;
+    ty = e.clientY;
+  }
+});
+document.addEventListener("mouseup", () => isTouching = false);
+
+// Draw a perfect triangle
+function drawTriangle(w) {
+  ctx.beginPath();
+
+  const steps = 3; // perfect triangle
+  for (let i = 0; i <= steps; i++) {
+    let a = (i / steps) * Math.PI * 2 - Math.PI / 2;
+    let px = w.x + w.r * Math.cos(a);
+    let py = w.y + w.r * Math.sin(a);
+
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+
+  ctx.closePath();
+
+  ctx.strokeStyle = `hsla(${w.hue},100%,60%,${w.alpha})`;
+  ctx.lineWidth = 6;
+
+  ctx.shadowColor = `hsla(${w.hue},100%,60%,1)`;
+  ctx.shadowBlur = 25;
+
+  ctx.stroke();
+}
+
+function animate() {
+  ctx.fillStyle = "rgba(0,0,20,0.25)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (isTouching) addTriangle(tx, ty);
+
+  waves.forEach((w, i) => {
+    drawTriangle(w);
+
+    w.r += 4;
+    w.alpha -= 0.017;
+    w.hue += 1;
+
+    if (w.alpha <= 0) waves.splice(i, 1);
+  });
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
